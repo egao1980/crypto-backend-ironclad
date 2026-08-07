@@ -30,12 +30,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # secrets-protocol not yet on OCI until protocol-only merges; use sibling checkout.
-      - uses: actions/checkout@v5
-        with:
-          repository: egao1980/secrets-protocol
-          path: _deps/secrets-protocol
-          ref: cursor/protocol-only-ironclad-backend-3b01
 
       - uses: oras-project/setup-oras@v2
         with:
@@ -86,11 +80,11 @@ jobs:
       - name: cl-repo install deps
         shell: bash
         run: |
-          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/_deps/secrets-protocol//:$(pwd)/${CL_REPOSITORY_CLIENT_DIR}//:"
+          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/${CL_REPOSITORY_CLIENT_DIR}//:"
           ros -l scripts/ci-install.lisp -q
 
       - name: Test
         shell: bash
         run: |
-          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/_deps/secrets-protocol//:$(pwd)/${CL_REPOSITORY_CLIENT_DIR}//:"
+          export CL_SOURCE_REGISTRY="$(pwd)//:$(pwd)/${CL_REPOSITORY_CLIENT_DIR}//:"
           ros -l scripts/ci-test.lisp -q
