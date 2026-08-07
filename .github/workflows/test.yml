@@ -127,6 +127,21 @@ jobs:
           ros install abcl-bin
           ros use abcl-bin
 
+      - name: Install JNA (CFFI on ABCL)
+        shell: bash
+        run: |
+          # cffi-abcl needs com.sun.jna.*; CLASSPATH beats Maven auto-fetch.
+          JNA_VER=5.14.0
+          mkdir -p "$HOME/jna"
+          curl -fsSL -o "$HOME/jna/jna-${JNA_VER}.jar" \
+            "https://repo1.maven.org/maven2/net/java/dev/jna/jna/${JNA_VER}/jna-${JNA_VER}.jar"
+          curl -fsSL -o "$HOME/jna/jna-platform-${JNA_VER}.jar" \
+            "https://repo1.maven.org/maven2/net/java/dev/jna/jna-platform/${JNA_VER}/jna-platform-${JNA_VER}.jar"
+          {
+            echo "CLASSPATH=$HOME/jna/jna-${JNA_VER}.jar:$HOME/jna/jna-platform-${JNA_VER}.jar${CLASSPATH:+:$CLASSPATH}"
+            echo "JAVA_TOOL_OPTIONS=--enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED ${JAVA_TOOL_OPTIONS:-}"
+          } >> "$GITHUB_ENV"
+
       - name: Pull cl-repository-client (OCI)
         shell: bash
         run: |
@@ -147,6 +162,15 @@ jobs:
           CLIENT_DIR="$(find .cl-repository -maxdepth 1 -type d -name 'cl-oci-*' | head -1)"
           : "${CLIENT_DIR:?cl-oci-* not found after oras pull}"
           echo "CL_REPOSITORY_CLIENT_DIR=${CLIENT_DIR}" >> "$GITHUB_ENV"
+
+      # chipz Gray-stream gunzip unsupported on ABCL → OCI extract fails on client 0.13.0.
+      # Overlay buffer-API installer until a published client includes the fix.
+      - name: Patch client installer (ABCL chipz buffer gunzip)
+        shell: bash
+        run: |
+          curl -fsSL -o "${CL_REPOSITORY_CLIENT_DIR}/src/client/installer.lisp" \
+            "https://raw.githubusercontent.com/egao1980/cl-repository/cursor/abcl-chipz-decompress-20ce/src/client/installer.lisp"
+          test -s "${CL_REPOSITORY_CLIENT_DIR}/src/client/installer.lisp"
 
       - name: Bootstrap cl-repository-client (QL deps for client only)
         shell: bash
