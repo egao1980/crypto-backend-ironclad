@@ -1,12 +1,19 @@
 (in-package #:crypto-backend-ironclad)
 
-(defclass ironclad-crypto-backend (crypto-protocol:crypto-backend) ())
+(defclass ironclad-crypto-backend (crypto-protocol:crypto-backend
+                                   secrets-protocol:secrets-backend)
+  ()
+  (:documentation "Ironclad implementation of crypto-protocol + secrets-protocol."))
 
 (defun make-ironclad-crypto-backend ()
   (make-instance 'ironclad-crypto-backend))
 
 (defun use-ironclad-crypto-backend ()
-  (setf crypto-protocol:*crypto-backend* (make-ironclad-crypto-backend)))
+  "Bind both *CRYPTO-BACKEND* and *SECRETS-BACKEND* to one Ironclad instance."
+  (let ((b (make-ironclad-crypto-backend)))
+    (setf crypto-protocol:*crypto-backend* b
+          secrets-protocol:*secrets-backend* b)
+    b))
 
 (defun %simple (v)
   (coerce v '(simple-array (unsigned-byte 8) (*))))
@@ -56,11 +63,7 @@
       (ironclad:produce-digest ctx)))
 
 (defun %fresh-nonce (nbytes)
-  (let* ((sp (find-package :secrets-protocol))
-         (sym (and sp (find-symbol "RANDOM-BYTES" sp))))
-    (if (and sym (fboundp sym))
-        (funcall sym nbytes)
-        (ironclad:random-data nbytes))))
+  (secrets-protocol:random-bytes nbytes))
 
 (defmethod crypto-protocol:backend-aead-encrypt
     ((backend ironclad-crypto-backend) algorithm key plaintext &key nonce aad)

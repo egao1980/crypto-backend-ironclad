@@ -27,6 +27,8 @@
    (cl-repo:ensure-system-dependencies "crypto-backend-ironclad"
      :also-tests t
      :sources '(("ironclad" :ql)
+                ("uuid" :ql)
+                ("babel" :ql)
                 ("rove" :ql)))))
 
 (format t "~&; ci: install phase done~%")
