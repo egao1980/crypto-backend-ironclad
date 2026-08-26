@@ -4,9 +4,7 @@
   :author "egao1980"
   :license "MIT"
   :depends-on ("crypto-protocol" "secrets-protocol" "ironclad" "uuid" "babel")
-  :properties
-  (:cl-repo
-   (:ci (:sources (("ironclad" :ql) ("uuid" :ql) ("babel" :ql) ("rove" :ql)))))
+
   :serial t
   :pathname "src"
   :components ((:file "package")
