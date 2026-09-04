@@ -1,6 +1,6 @@
 (defsystem "crypto-backend-ironclad"
-  :version "0.1.1"
-  :description "Ironclad backend for crypto-protocol and secrets-protocol"
+  :version "0.2.0"
+  :description "Ironclad backend for crypto-protocol and secrets-protocol (incl. signatures)"
   :author "egao1980"
   :license "MIT"
   :depends-on ("crypto-protocol" "secrets-protocol" "ironclad" "uuid" "babel")
@@ -17,7 +17,9 @@
   :pathname "tests"
   :serial t
   :components ((:file "package")
+               (:file "vectors/rfc8032-ed25519")
                (:file "backend-test")
+               (:file "sign-test")
                (:file "secrets-test"))
   :perform (test-op (o c)
              (unless (symbol-call :rove :run c)
