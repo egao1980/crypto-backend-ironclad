@@ -42,3 +42,32 @@
     (let* ((msg #(9 8 7))
            (sig (crypto-protocol:sign msg :algorithm :eddsa :key sk)))
       (ok (crypto-protocol:verify msg sig :algorithm :eddsa :key pk)))))
+
+(deftest-parametrize wycheproof-ed25519
+    ((id msg-hex sig-hex valid-p) :rows *wycheproof-ed25519-cases*)
+  (let ((msg (if (zerop (length msg-hex))
+                 #()
+                 (ironclad:hex-string-to-byte-array msg-hex)))
+        (sig (ironclad:hex-string-to-byte-array sig-hex)))
+    (if valid-p
+        (ok (crypto-protocol:verify msg sig :algorithm :ed25519
+                                    :key *wycheproof-ed25519-pk*)
+            id)
+        (ok (signals (crypto-protocol:verify msg sig :algorithm :ed25519
+                                             :key *wycheproof-ed25519-pk*)
+                     'crypto-protocol:crypto-authentication-error)
+            id))))
+
+(deftest-parametrize wycheproof-ecdsa-p256
+    ((id msg-hex sig-hex valid-p) :rows *wycheproof-p256-cases*)
+  (let ((msg (ironclad:hex-string-to-byte-array msg-hex))
+        (sig (ironclad:hex-string-to-byte-array sig-hex))
+        (pk (wycheproof-p256-public)))
+    (if valid-p
+        (ok (crypto-protocol:verify msg sig :algorithm :ecdsa-p256-sha256 :key pk)
+            id)
+        (ok (signals (crypto-protocol:verify msg sig
+                                             :algorithm :ecdsa-p256-sha256
+                                             :key pk)
+                     'crypto-protocol:crypto-authentication-error)
+            id))))

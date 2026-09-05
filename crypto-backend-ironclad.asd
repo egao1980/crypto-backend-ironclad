@@ -18,6 +18,8 @@
   :serial t
   :components ((:file "package")
                (:file "vectors/rfc8032-ed25519")
+               (:file "vectors/wycheproof-ed25519")
+               (:file "vectors/wycheproof-ecdsa-p256")
                (:file "backend-test")
                (:file "sign-test")
                (:file "secrets-test"))
