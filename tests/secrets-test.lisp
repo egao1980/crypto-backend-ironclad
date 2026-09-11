@@ -26,6 +26,14 @@
     (ok (= 36 (length u)))
     (ok (char= #\- (char u 8)))))
 
+(deftest uuid-v7
+  (let ((u (secrets-protocol:uuid :version :v7)))
+    (ok (= 36 (length u)))
+    (ok (char= #\- (char u 8)))
+    (ok (char= #\7 (char u 14)))
+    (ok (find (char u 19) "89ab"))
+    (ok (not (string= u (secrets-protocol:uuid :version :v7))))))
+
 (deftest password-argon2i-roundtrip
   (let* ((hash (secrets-protocol:hash-password "s3cret" :algorithm :argon2i)))
     (ok (secrets-protocol:verify-password "s3cret" hash))
