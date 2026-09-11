@@ -13,8 +13,8 @@
     ((:v4 :4)
      (string-downcase (princ-to-string (uuid:make-v4-uuid))))
     ((:v7 :7)
-     (error 'secrets-protocol:secrets-error
-            :message "UUID v7 not available in this backend yet"))))
+     (secrets-protocol:make-uuid-v7
+      :random-bytes (ironclad:random-data 10)))))
 
 (defun %hex (octets)
   (with-output-to-string (s)

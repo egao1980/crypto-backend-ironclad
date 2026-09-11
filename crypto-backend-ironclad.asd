@@ -1,5 +1,5 @@
 (defsystem "crypto-backend-ironclad"
-  :version "0.2.0"
+  :version "0.2.1"
   :description "Ironclad backend for crypto-protocol and secrets-protocol (incl. signatures)"
   :author "egao1980"
   :license "MIT"
