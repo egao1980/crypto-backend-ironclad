@@ -7,11 +7,21 @@
   (declare (ignore backend))
   (ironclad:random-data n))
 
+;;; RFC 9562 §5.4: 122 CSPRNG bits, version nibble 4, variant 10xx.
+;;; Never CL RANDOM: a fresh image's *RANDOM-STATE* repeats across processes.
+(defun make-uuid-v4 (octets)
+  "UUID v4 string from 16 random OCTETS (version and variant bits set)."
+  (check-type octets (vector (unsigned-byte 8) 16))
+  (let ((octets (copy-seq octets)))
+    (setf (aref octets 6) (logior (logand (aref octets 6) #x0f) #x40)
+          (aref octets 8) (logior (logand (aref octets 8) #x3f) #x80))
+    (secrets-protocol::%uuid-string octets)))
+
 (defmethod secrets-protocol:backend-uuid ((backend ironclad-crypto-backend) &key (version :v4))
   (declare (ignore backend))
   (ecase version
     ((:v4 :4)
-     (string-downcase (princ-to-string (uuid:make-v4-uuid))))
+     (make-uuid-v4 (ironclad:random-data 16)))
     ((:v7 :7)
      (secrets-protocol:make-uuid-v7
       :random-bytes (ironclad:random-data 10)))))
