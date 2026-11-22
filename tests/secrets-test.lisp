@@ -24,7 +24,37 @@
 (deftest uuid-v4
   (let ((u (secrets-protocol:uuid :version :v4)))
     (ok (= 36 (length u)))
-    (ok (char= #\- (char u 8)))))
+    (ok (char= #\- (char u 8)))
+    (ok (char= #\4 (char u 14)))
+    (ok (find (char u 19) "89ab"))
+    (ok (every (lambda (c) (or (char= c #\-) (digit-char-p c 16))) u))))
+
+(deftest uuid-v4-bits-from-octets
+  ;; All-ones and all-zeros input: only the version and variant bits change.
+  (ok (string= "ffffffff-ffff-4fff-bfff-ffffffffffff"
+               (crypto-backend-ironclad::make-uuid-v4
+                (make-array 16 :element-type '(unsigned-byte 8) :initial-element #xff))))
+  (ok (string= "00000000-0000-4000-8000-000000000000"
+               (crypto-backend-ironclad::make-uuid-v4
+                (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))))
+
+(deftest uuid-v4-unique
+  (let ((seen (make-hash-table :test 'equal)))
+    (dotimes (i 1000) (setf (gethash (secrets-protocol:uuid :version :v4) seen) t))
+    (ok (= 1000 (hash-table-count seen)))))
+
+(deftest uuid-v4-ignores-random-state
+  ;; A fresh process starts from the same *RANDOM-STATE*. Replay one state
+  ;; twice: the UUIDs must still differ, and the state must not advance.
+  (let* ((seed (make-random-state nil))
+         (a (let ((*random-state* (make-random-state seed)))
+              (list (secrets-protocol:uuid :version :v4) (random most-positive-fixnum))))
+         (b (let ((*random-state* (make-random-state seed)))
+              (list (secrets-protocol:uuid :version :v4) (random most-positive-fixnum))))
+         (untouched (let ((*random-state* (make-random-state seed)))
+                      (random most-positive-fixnum))))
+    (ok (string/= (first a) (first b)))
+    (ok (= untouched (second a) (second b)))))
 
 (deftest uuid-v7
   (let ((u (secrets-protocol:uuid :version :v7)))
